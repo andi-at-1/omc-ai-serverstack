@@ -1,1 +1,1 @@
-python3 start_services.py --profile none --environment omc
+python3 start_services.py --profile none --environment omc --docker-mirror-url http://172.20.1.10:5000

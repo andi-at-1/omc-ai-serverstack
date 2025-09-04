@@ -14,6 +14,10 @@ import time
 import argparse
 import platform
 import sys
+#docker mirror ping stuff:
+import subprocess
+import urllib.request
+from urllib.parse import urlparse
 
 def run_command(cmd, cwd=None):
     """Run a shell command and print it."""
@@ -63,13 +67,33 @@ def start_supabase(environment=None):
     cmd.extend(["up", "-d"])
     run_command(cmd)
 
-def start_local_ai(profile=None, environment=None):
+def check_docker_mirror(mirror_url):
+    """Prüft Registry mit Standard-Bibliotheken"""
+    try:
+        health_url = f"{mirror_url}/v2/"
+        with urllib.request.urlopen(health_url, timeout=5) as response:
+            return response.status == 200
+    except:
+        return False
+
+def start_local_ai(profile=None, environment=None, docker_mirror_url=""):
     """Start the local AI services (using its compose file)."""
     print("Starting local AI services...")
     cmd = ["docker", "compose", "-p", "localai"]
+
+    # Mirror hinzufügen
+    if check_docker_mirror(docker_mirror_url):
+        cmd.extend(["--registry-mirror", docker_mirror_url])
+        print(f"Docker Mirror {docker_mirror_url} verfügbar - wird verwendet")
+    else:
+        print(f"Docker Mirror {docker_mirror_url} nicht verfügbar - wird übersprungen")
+
     if profile and profile != "none":
         cmd.extend(["--profile", profile])
     cmd.extend(["-f", "docker-compose.yml"])
+
+
+
     if environment and environment == "private":
         cmd.extend(["-f", "docker-compose.override.private.yml"])
     if environment and environment == "public":
@@ -221,10 +245,14 @@ def check_and_fix_docker_compose_for_searxng():
 
 def main():
     parser = argparse.ArgumentParser(description='Start the local AI and Supabase services.')
+    
     parser.add_argument('--profile', choices=['none'], default='none',
                       help='Profile to use for Docker Compose (default: none)')
     parser.add_argument('--environment', choices=['private', 'public', 'omc'], default='omc',
                       help='Environment to use for Docker Compose (default: omc)')
+    parser.add_argument('--docker-mirror-url', default='http://172.20.1.10:5000',
+                      help='Docker Mirror URL (default: http://172.20.1.10:5000)')
+
     args = parser.parse_args()
 
     clone_supabase_repo()
@@ -244,7 +272,7 @@ def main():
     time.sleep(10)
 
     # Then start the local AI services
-    start_local_ai(args.profile, args.environment)
+    start_local_ai(args.profile, args.environment, args.docker-mirror-url)
 
 if __name__ == "__main__":
     main()
