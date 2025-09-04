@@ -1,30 +1,8 @@
 # Self-hosted AI Package
 
 **Self-hosted AI Package** is an open, docker compose template that
-quickly bootstraps a fully featured Local AI and Low Code development
-environment including Ollama for your local LLMs, Open WebUI for an interface to chat with your N8N agents, and Supabase for your database, vector store, and authentication. 
-
-This is Cole's version with a couple of improvements and the addition of Supabase, Open WebUI, Flowise, Neo4j, Langfuse, SearXNG, and Caddy!
-Also, the local RAG AI Agent workflows from the video will be automatically in your 
-n8n instance if you use this setup instead of the base one provided by n8n!
-
-**IMPORANT**: Supabase has updated a couple environment variables so you may have to add some new default values in your .env that I have in my .env.example if you have had this project up and running already and are just pulling new changes. Specifically, you need to add "POOLER_DB_POOL_SIZE=5" to your .env. This is required if you have had the package running before June 14th.
-
-## Important Links
-
-- [Local AI community](https://thinktank.ottomator.ai/c/local-ai/18) forum over in the oTTomator Think Tank
-
-- [GitHub Kanban board](https://github.com/users/coleam00/projects/2/views/1) for feature implementation and bug squashing.
-
-- [Original Local AI Starter Kit](https://github.com/n8n-io/self-hosted-ai-starter-kit) by the n8n team
-
-- Download my N8N + OpenWebUI integration [directly on the Open WebUI site.](https://openwebui.com/f/coleam/n8n_pipe/) (more instructions below)
-
-![n8n.io - Screenshot](https://raw.githubusercontent.com/n8n-io/self-hosted-ai-starter-kit/main/assets/n8n-demo.gif)
-
-Curated by <https://github.com/n8n-io> and <https://github.com/coleam00>, it combines the self-hosted n8n
-platform with a curated list of compatible AI products and components to
-quickly get started with building self-hosted AI workflows.
+quickly bootstraps a fully featured Local AI and Low Code development,
+modified to fit the OMC-DEV-STACK
 
 ### What’s included
 
@@ -33,9 +11,6 @@ integrations and advanced AI components
 
 ✅ [**Supabase**](https://supabase.com/) - Open source database as a service -
 most widely used database for AI agents
-
-✅ [**Ollama**](https://ollama.com/) - Cross-platform LLM platform to install
-and run the latest local LLMs
 
 ✅ [**Open WebUI**](https://openwebui.com/) - ChatGPT-like interface to
 privately interact with your local models and N8N agents
@@ -49,33 +24,20 @@ kept unlike Postgres since it's faster than Supabase so sometimes is the better 
 
 ✅ [**Neo4j**](https://neo4j.com/) - Knowledge graph engine that powers tools like GraphRAG, LightRAG, and Graphiti 
 
-✅ [**SearXNG**](https://searxng.org/) - Open source, free internet metasearch engine which aggregates 
-results from up to 229 search services. Users are neither tracked nor profiled, hence the fit with the local AI package.
-
-✅ [**Caddy**](https://caddyserver.com/) - Managed HTTPS/TLS for custom domains
-
 ✅ [**Langfuse**](https://langfuse.com/) - Open source LLM engineering platform for agent observability
 
 ## Prerequisites
 
-Before you begin, make sure you have the following software installed:
-
-- [Python](https://www.python.org/downloads/) - Required to run the setup script
-- [Git/GitHub Desktop](https://desktop.github.com/) - For easy repository management
-- [Docker/Docker Desktop](https://www.docker.com/products/docker-desktop/) - Required to run all services
+docker from it´s repo, python, python-is-python3
 
 ## Installation
 
-Clone the repository and navigate to the project directory:
-```bash
-git clone -b stable https://github.com/coleam00/local-ai-packaged.git
-cd local-ai-packaged
-```
-
 Before running the services, you need to set up your environment variables for Supabase following their [self-hosting guide](https://supabase.com/docs/guides/self-hosting/docker#securing-your-services).
 
-1. Make a copy of `.env.example` and rename it to `.env` in the root directory of the project
-2. Set the following required environment variables:
+cp .env.example .env
+nano .env
+
+Set the following required environment variables:
    ```bash
    ############
    # N8N Configuration
@@ -113,135 +75,45 @@ Before running the services, you need to set up your environment variables for S
 > [!IMPORTANT]
 > Make sure to generate secure random values for all secrets. Never use the example values in production.
 
-3. Set the following environment variables if deploying to production, otherwise leave commented:
+3. Set the following environment variables TO THE DESIRED REVERSEPROXY HOSTS!
    ```bash
-   ############
-   # Caddy Config
-   ############
-
    N8N_HOSTNAME=n8n.yourdomain.com
    WEBUI_HOSTNAME=:openwebui.yourdomain.com
    FLOWISE_HOSTNAME=:flowise.yourdomain.com
    SUPABASE_HOSTNAME=:supabase.yourdomain.com
-   OLLAMA_HOSTNAME=:ollama.yourdomain.com
-   SEARXNG_HOSTNAME=searxng.yourdomain.com
    NEO4J_HOSTNAME=neo4j.yourdomain.com
-   LETSENCRYPT_EMAIL=your-email-address
    ```   
 
 ---
 
-The project includes a `start_services.py` script that handles starting both the Supabase and local AI services. The script accepts a `--profile` flag to specify which GPU configuration to use.
+```bash
+python start_services.py --profile none --environment omc
+```
+- **omc:** you are deploying the stack in a safe environment, hence a lot of ports can be made accessible without having to worry about security
 
-### For Nvidia GPU users
+
+
+
+
+## Upgrading
+
+To update all containers to their latest versions (n8n, Open WebUI, etc.), run these commands:
 
 ```bash
-python start_services.py --profile gpu-nvidia
+# Stop all services
+docker compose -p localai -f docker-compose.yml --profile <your-profile> down
+
+# Pull latest versions of all containers
+docker compose -p localai -f docker-compose.yml --profile <your-profile> pull
+
+# Start services again with your desired profile
+python start_services.py --profile <your-profile>
 ```
 
-> [!NOTE]
-> If you have not used your Nvidia GPU with Docker before, please follow the
-> [Ollama Docker instructions](https://github.com/ollama/ollama/blob/main/docs/docker.md).
+Replace `<your-profile>` with one of: `cpu`, `gpu-nvidia`, `gpu-amd`, or `none`.
 
-### For AMD GPU users on Linux
+Note: The `start_services.py` script itself does not update containers - it only restarts them or pulls them if you are downloading these containers for the first time. To get the latest versions, you must explicitly run the commands above.
 
-```bash
-python start_services.py --profile gpu-amd
-```
-
-### For Mac / Apple Silicon users
-
-If you're using a Mac with an M1 or newer processor, you can't expose your GPU to the Docker instance, unfortunately. There are two options in this case:
-
-1. Run the starter kit fully on CPU:
-   ```bash
-   python start_services.py --profile cpu
-   ```
-
-2. Run Ollama on your Mac for faster inference, and connect to that from the n8n instance:
-   ```bash
-   python start_services.py --profile none
-   ```
-
-   If you want to run Ollama on your mac, check the [Ollama homepage](https://ollama.com/) for installation instructions.
-
-#### For Mac users running OLLAMA locally
-
-If you're running OLLAMA locally on your Mac (not in Docker), you need to modify the OLLAMA_HOST environment variable in the n8n service configuration. Update the x-n8n section in your Docker Compose file as follows:
-
-```yaml
-x-n8n: &service-n8n
-  # ... other configurations ...
-  environment:
-    # ... other environment variables ...
-    - OLLAMA_HOST=host.docker.internal:11434
-```
-
-Additionally, after you see "Editor is now accessible via: http://localhost:5678/":
-
-1. Head to http://localhost:5678/home/credentials
-2. Click on "Local Ollama service"
-3. Change the base URL to "http://host.docker.internal:11434/"
-
-### For everyone else
-
-```bash
-python start_services.py --profile cpu
-```
-
-### The environment argument
-The **start-services.py** script offers the possibility to pass one of two options for the environment argument, **private** (default environment) and **public**:
-- **private:** you are deploying the stack in a safe environment, hence a lot of ports can be made accessible without having to worry about security
-- **public:** the stack is deployed in a public environment, which means the attack surface should be made as small as possible. All ports except for 80 and 443 are closed
-
-The stack initialized with
-```bash
-   python start_services.py --profile gpu-nvidia --environment private
-   ```
-equals the one initialized with
-```bash
-   python start_services.py --profile gpu-nvidia
-   ```
-
-## Deploying to the Cloud
-
-### Prerequisites for the below steps
-
-- Linux machine (preferably Unbuntu) with Nano, Git, and Docker installed
-
-### Extra steps
-
-Before running the above commands to pull the repo and install everything:
-
-1. Run the commands as root to open up the necessary ports:
-   - ufw enable
-   - ufw allow 80 && ufw allow 443
-   - ufw reload
-   ---
-   **WARNING**
-
-   ufw does not shield ports published by docker, because the iptables rules configured by docker are analyzed before those configured by ufw. There is a solution to change this behavior, but that is out of scope for this project. Just make sure that all traffic runs through the caddy service via port 443. Port 80 should only be used to redirect to port 443.
-
-   ---
-2. Run the **start-services.py** script with the environment argument **public** to indicate you are going to run the package in a public environment. The script will make sure that all ports, except for 80 and 443, are closed down, e.g.
-
-```bash
-   python3 start_services.py --profile gpu-nvidia --environment public
-   ```
-
-3. Set up A records for your DNS provider to point your subdomains you'll set up in the .env file for Caddy
-to the IP address of your cloud instance.
-
-   For example, A record to point n8n to [cloud instance IP] for n8n.yourdomain.com
-
-
-**NOTE**: If you are using a cloud machine without the "docker compose" command available by default, such as a Ubuntu GPU instance on DigitalOcean, run these commands before running start_services.py:
-
-- DOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep 'tag_name' | cut -d\\" -f4)
-- sudo curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-linux-x86_64" -o /usr/local/bin/docker-compose
-- sudo chmod +x /usr/local/bin/docker-compose
-- sudo mkdir -p /usr/local/lib/docker/cli-plugins
-- sudo ln -s /usr/local/bin/docker-compose /usr/local/lib/docker/cli-plugins/docker-compose
 
 ## ⚡️ Quick start and usage
 
@@ -257,7 +129,7 @@ to get started.
    <http://localhost:5678/workflow/vTN9y2dLXqTiDfPT>
 3. Create credentials for every service:
    
-   Ollama URL: http://ollama:11434
+   openai URL: http://172.20.1.1
 
    Postgres (through Supabase): use DB, username, and password from .env. IMPORTANT: Host is 'db'
    Since that is the name of the service running Supabase
@@ -301,24 +173,9 @@ language model and Qdrant as your vector store.
 > combines robust components that work well together for proof-of-concept
 > projects. You can customize it to meet your specific needs
 
-## Upgrading
 
-To update all containers to their latest versions (n8n, Open WebUI, etc.), run these commands:
 
-```bash
-# Stop all services
-docker compose -p localai -f docker-compose.yml --profile <your-profile> down
 
-# Pull latest versions of all containers
-docker compose -p localai -f docker-compose.yml --profile <your-profile> pull
-
-# Start services again with your desired profile
-python start_services.py --profile <your-profile>
-```
-
-Replace `<your-profile>` with one of: `cpu`, `gpu-nvidia`, `gpu-amd`, or `none`.
-
-Note: The `start_services.py` script itself does not update containers - it only restarts them or pulls them if you are downloading these containers for the first time. To get the latest versions, you must explicitly run the commands above.
 
 ## Troubleshooting
 

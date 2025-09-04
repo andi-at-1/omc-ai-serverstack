@@ -1,0 +1,1 @@
+python3 start_services.py --profile none --environment omc

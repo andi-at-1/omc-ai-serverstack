@@ -4,7 +4,7 @@ start_services.py
 
 This script starts the Supabase stack first, waits for it to initialize, and then starts
 the local AI stack. Both stacks use the same Docker Compose project name ("localai")
-so they appear together in Docker Desktop.
+so they appear together in Docker.
 """
 
 import os
@@ -74,6 +74,8 @@ def start_local_ai(profile=None, environment=None):
         cmd.extend(["-f", "docker-compose.override.private.yml"])
     if environment and environment == "public":
         cmd.extend(["-f", "docker-compose.override.public.yml"])
+    if environment and environment == "omc":
+        cmd.extend(["-f", "docker-compose.override.omc.yml"])
     cmd.extend(["up", "-d"])
     run_command(cmd)
 
@@ -219,10 +221,10 @@ def check_and_fix_docker_compose_for_searxng():
 
 def main():
     parser = argparse.ArgumentParser(description='Start the local AI and Supabase services.')
-    parser.add_argument('--profile', choices=['cpu', 'gpu-nvidia', 'gpu-amd', 'none'], default='cpu',
-                      help='Profile to use for Docker Compose (default: cpu)')
-    parser.add_argument('--environment', choices=['private', 'public'], default='private',
-                      help='Environment to use for Docker Compose (default: private)')
+    parser.add_argument('--profile', choices=['none'], default='none',
+                      help='Profile to use for Docker Compose (default: none)')
+    parser.add_argument('--environment', choices=['private', 'public', 'omc'], default='omc',
+                      help='Environment to use for Docker Compose (default: omc)')
     args = parser.parse_args()
 
     clone_supabase_repo()
