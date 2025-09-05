@@ -58,10 +58,18 @@ def stop_existing_containers(profile=None):
     cmd.extend(["-f", "docker-compose.yml", "down"])
     run_command(cmd)
 
-def start_supabase(environment=None):
+def start_supabase(environment=None, docker_mirror_url=""):
     """Start the Supabase services (using its compose file)."""
     print("Starting Supabase services...")
     cmd = ["docker", "compose", "-p", "localai", "-f", "supabase/docker/docker-compose.yml"]
+    
+    # Mirror hinzufügen
+    if check_docker_mirror(docker_mirror_url):
+        cmd.extend(["--registry-mirror", docker_mirror_url])
+        print(f"Docker Mirror {docker_mirror_url} verfügbar - wird verwendet")
+    else:
+        print(f"Docker Mirror {docker_mirror_url} nicht verfügbar - wird übersprungen")
+    
     if environment and environment == "public":
         cmd.extend(["-f", "docker-compose.override.public.supabase.yml"])
     cmd.extend(["up", "-d"])
@@ -265,14 +273,14 @@ def main():
     stop_existing_containers(args.profile)
 
     # Start Supabase first
-    start_supabase(args.environment)
+    start_supabase(args.environment, args.docker_mirror_url)
 
     # Give Supabase some time to initialize
     print("Waiting for Supabase to initialize...")
     time.sleep(10)
 
     # Then start the local AI services
-    start_local_ai(args.profile, args.environment, args.docker-mirror-url)
+    start_local_ai(args.profile, args.environment, args.docker_mirror_url)
 
 if __name__ == "__main__":
     main()
