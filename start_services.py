@@ -61,46 +61,22 @@ def stop_existing_containers(profile=None):
 def start_supabase(environment=None, docker_mirror_url=""):
     """Start the Supabase services (using its compose file)."""
     print("Starting Supabase services...")
-    cmd = ["docker", "compose", "-p", "localai", "-f", "supabase/docker/docker-compose.yml"]
-    
-    # Mirror hinzufügen
-    if check_docker_mirror(docker_mirror_url):
-        cmd.extend(["--registry-mirror", docker_mirror_url])
-        print(f"Docker Mirror {docker_mirror_url} verfügbar - wird verwendet")
-    else:
-        print(f"Docker Mirror {docker_mirror_url} nicht verfügbar - wird übersprungen")
-    
+    cmd = ["docker", "compose", "-p", "localai", "-f", "supabase/docker/docker-compose.yml"]   
     if environment and environment == "public":
         cmd.extend(["-f", "docker-compose.override.public.supabase.yml"])
     cmd.extend(["up", "-d"])
     run_command(cmd)
 
-def check_docker_mirror(mirror_url):
-    """Prüft Registry mit Standard-Bibliotheken"""
-    try:
-        health_url = f"{mirror_url}/v2/"
-        with urllib.request.urlopen(health_url, timeout=5) as response:
-            return response.status == 200
-    except:
-        return False
+
 
 def start_local_ai(profile=None, environment=None, docker_mirror_url=""):
     """Start the local AI services (using its compose file)."""
     print("Starting local AI services...")
     cmd = ["docker", "compose", "-p", "localai"]
 
-    # Mirror hinzufügen
-    if check_docker_mirror(docker_mirror_url):
-        cmd.extend(["--registry-mirror", docker_mirror_url])
-        print(f"Docker Mirror {docker_mirror_url} verfügbar - wird verwendet")
-    else:
-        print(f"Docker Mirror {docker_mirror_url} nicht verfügbar - wird übersprungen")
-
     if profile and profile != "none":
         cmd.extend(["--profile", profile])
     cmd.extend(["-f", "docker-compose.yml"])
-
-
 
     if environment and environment == "private":
         cmd.extend(["-f", "docker-compose.override.private.yml"])
@@ -258,8 +234,6 @@ def main():
                       help='Profile to use for Docker Compose (default: none)')
     parser.add_argument('--environment', choices=['private', 'public', 'omc'], default='omc',
                       help='Environment to use for Docker Compose (default: omc)')
-    parser.add_argument('--docker-mirror-url', default='http://172.20.1.10:5000',
-                      help='Docker Mirror URL (default: http://172.20.1.10:5000)')
 
     args = parser.parse_args()
 
@@ -273,14 +247,31 @@ def main():
     stop_existing_containers(args.profile)
 
     # Start Supabase first
-    start_supabase(args.environment, args.docker_mirror_url)
+    start_supabase(args.environment)
 
     # Give Supabase some time to initialize
     print("Waiting for Supabase to initialize...")
     time.sleep(10)
 
     # Then start the local AI services
-    start_local_ai(args.profile, args.environment, args.docker_mirror_url)
+    start_local_ai(args.profile, args.environment)
 
 if __name__ == "__main__":
     main()
+
+
+# def check_docker_mirror(mirror_url):
+#     """Prüft Registry mit Standard-Bibliotheken"""
+#     try:
+#         health_url = f"{mirror_url}/v2/"
+#         with urllib.request.urlopen(health_url, timeout=5) as response:
+#             return response.status == 200
+#     except:
+#         return False
+    
+#         # Mirror hinzufügen
+#     if check_docker_mirror(docker_mirror_url):
+#         cmd.extend(["--registry-mirror", docker_mirror_url])
+#         print(f"Docker Mirror {docker_mirror_url} verfügbar - wird verwendet")
+#     else:
+#         print(f"Docker Mirror {docker_mirror_url} nicht verfügbar - wird übersprungen")
