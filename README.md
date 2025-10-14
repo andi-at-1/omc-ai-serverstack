@@ -2,6 +2,10 @@
 
 Self-hosted AI development stack with Docker Compose. Modified for OMC environment.
 
+**Based on:** [Local AI Starter Kit](https://github.com/coleam00/local-ai-stack) by [Cole Medin](https://github.com/coleam00)
+
+**Modifications:** Streamlined for OMC deployment with customizable service profiles and simplified configuration.
+
 ## What's included
 
 - n8n - Workflow automation platform with 400+ integrations
@@ -53,10 +57,23 @@ ENCRYPTION_KEY=
 
 Start all services:
 ```
-python start_services.py --profile none --environment omc
+./run.sh
 ```
 
-WARNING: omc environment exposes all ports on 0.0.0.0. Only use in trusted environments.
+Enable/disable specific services by editing the configuration at the top of `run.sh`:
+```bash
+ENABLE_N8N=true
+ENABLE_OPENWEBUI=true
+ENABLE_FLOWISE=true
+ENABLE_QDRANT=true
+ENABLE_NEO4J=true
+ENABLE_LANGFUSE=true
+ENABLE_PORTAINER=true
+```
+
+Set any service to `false` to disable it.
+
+WARNING: All ports are exposed on 0.0.0.0. Only use in trusted environments.
 
 ## Service Access
 
@@ -94,10 +111,10 @@ For n8n workflows:
 ## Upgrading
 
 ```
-docker compose -p localai down
-docker compose -p localai pull
-python start_services.py --profile none --environment omc
+./run.sh
 ```
+
+The run.sh script stops, pulls latest versions, and restarts all enabled services.
 
 ## Local File Access
 
@@ -116,4 +133,8 @@ Common issues:
 
 ## License
 
-Apache License 2.0 - Based on n8n Local AI Starter Kit
+Apache License 2.0 - Copyright 2025-present Cole Medin and Contributors
+
+Commercial use is permitted under the Apache 2.0 license terms. See LICENSE file for full details.
+
+Original project: [Local AI Starter Kit](https://github.com/coleam00/local-ai-stack) by Cole Medin

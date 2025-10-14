@@ -30,6 +30,7 @@ x-n8n: &service-n8n
 
 services:
   flowise:
+    profiles: ["flowise"]
     image: flowiseai/flowise
     restart: unless-stopped
     container_name: flowise
@@ -46,6 +47,7 @@ services:
     entrypoint: /bin/sh -c "sleep 3; flowise start"
 
   open-webui:
+    profiles: ["openwebui"]
     image: ghcr.io/open-webui/open-webui:main
     restart: unless-stopped
     container_name: open-webui
@@ -57,6 +59,7 @@ services:
       - open-webui:/app/backend/data
 
   n8n-import:
+    profiles: ["n8n"]
     <<: *service-n8n
     container_name: n8n-import
     entrypoint: /bin/sh
@@ -67,6 +70,7 @@ services:
       - ./n8n/backup:/backup
 
   n8n:
+    profiles: ["n8n"]
     <<: *service-n8n
     container_name: n8n
     restart: unless-stopped
@@ -81,6 +85,7 @@ services:
         condition: service_completed_successfully
 
   qdrant:
+    profiles: ["qdrant"]
     image: qdrant/qdrant
     container_name: qdrant
     restart: unless-stopped
@@ -91,6 +96,7 @@ services:
       - qdrant_storage:/qdrant/storage
 
   neo4j:
+    profiles: ["neo4j"]
     image: neo4j:latest
     volumes:
         - ./neo4j/logs:/logs
@@ -107,6 +113,7 @@ services:
 
 
   langfuse-worker:
+    profiles: ["langfuse"]
     image: langfuse/langfuse-worker:3
     restart: always
     depends_on: &langfuse-depends-on
@@ -165,6 +172,7 @@ services:
       REDIS_TLS_KEY: ${REDIS_TLS_KEY:-/certs/redis.key}
 
   langfuse-web:
+    profiles: ["langfuse"]
     image: langfuse/langfuse:3
     restart: always
     depends_on: *langfuse-depends-on
@@ -185,6 +193,7 @@ services:
       LANGFUSE_INIT_USER_PASSWORD: ${LANGFUSE_INIT_USER_PASSWORD:-}
 
   clickhouse:
+    profiles: ["langfuse"]
     image: clickhouse/clickhouse-server
     restart: always
     user: "101:101"
@@ -207,6 +216,7 @@ services:
       start_period: 1s
 
   minio:
+    profiles: ["langfuse"]
     image: minio/minio
     restart: always
     entrypoint: sh
@@ -228,6 +238,7 @@ services:
       start_period: 1s
 
   postgres:
+    profiles: ["langfuse"]
     image: postgres:${POSTGRES_VERSION:-latest}
     restart: unless-stopped
     healthcheck:
@@ -245,6 +256,7 @@ services:
       - langfuse_postgres_data:/var/lib/postgresql/data
 
   redis:
+    profiles: ["langfuse"]
     container_name: redis
     image: docker.io/valkey/valkey:8-alpine
     command: valkey-server --save 30 1 --loglevel warning
@@ -271,6 +283,7 @@ services:
       retries: 10
 
   portainer:
+    profiles: ["portainer"]
     image: portainer/portainer-ce:latest
     container_name: portainer
     ports:

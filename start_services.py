@@ -60,10 +60,13 @@ def start_supabase():
     cmd.extend(["up", "-d"])
     run_command(cmd)
 
-def start_local_ai():
+def start_local_ai(profiles=None):
     """Start the local AI services (using its compose file)."""
     print("Starting local AI services...")
     cmd = ["docker", "compose", "-p", "localai"]
+    if profiles:
+        for profile in profiles:
+            cmd.extend(["--profile", profile])
     cmd.extend(["-f", "docker-compose.yml", "up", "-d"])
     run_command(cmd)
 
@@ -209,7 +212,9 @@ def check_and_fix_docker_compose_for_searxng():
 
 def main():
     parser = argparse.ArgumentParser(description='Start the local AI and Supabase services.')
-    
+    parser.add_argument('--profile', action='append', dest='profiles',
+                      help='Profile to enable (can be specified multiple times)')
+
     args = parser.parse_args()
 
     clone_supabase_repo()
@@ -229,7 +234,7 @@ def main():
     time.sleep(10)
 
     # Then start the local AI services
-    start_local_ai()
+    start_local_ai(profiles=args.profiles)
 
 if __name__ == "__main__":
     main()
