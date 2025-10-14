@@ -4,6 +4,7 @@
 # SERVICE CONFIGURATION
 # Set to true to enable, false to disable
 ##################################
+ENABLE_SUPABASE=true
 ENABLE_N8N=true
 ENABLE_OPENWEBUI=true
 ENABLE_FLOWISE=true
@@ -38,4 +39,8 @@ docker compose -p localai -f docker-compose.yml $PROFILES pull
 
 # Start services with selected profiles
 echo "Starting services..."
-python3 start_services.py $PROFILES
+if [ "$ENABLE_SUPABASE" = true ]; then
+    python3 start_services.py $PROFILES --enable-supabase
+else
+    python3 start_services.py $PROFILES
+fi

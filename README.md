@@ -8,8 +8,8 @@ Self-hosted AI development stack with Docker Compose. Modified for OMC environme
 
 ## What's included
 
-- n8n - Workflow automation platform with 400+ integrations
 - Supabase - PostgreSQL database with REST API and realtime subscriptions
+- n8n - Workflow automation platform with 400+ integrations
 - Open WebUI - ChatGPT-like interface for local LLM interaction
 - Flowise - Visual AI agent builder for creating LLM workflows
 - Qdrant - High-performance vector database for RAG applications
@@ -62,6 +62,7 @@ Start all services:
 
 Enable/disable specific services by editing the configuration at the top of `run.sh`:
 ```bash
+ENABLE_SUPABASE=true
 ENABLE_N8N=true
 ENABLE_OPENWEBUI=true
 ENABLE_FLOWISE=true
@@ -78,12 +79,12 @@ WARNING: All ports are exposed on 0.0.0.0. Only use in trusted environments.
 ## Service Access
 
 Main services:
+- Supabase: http://localhost:8000
 - n8n: http://localhost:5678
 - Open WebUI: http://localhost:8080
 - Flowise: http://localhost:3001
-- Supabase: http://localhost:8000
-- Neo4j: http://localhost:7474
 - Qdrant: http://localhost:6333
+- Neo4j: http://localhost:7474
 - Langfuse: http://localhost:3000
   - ClickHouse: http://localhost:8123 (HTTP), localhost:9000 (native)
   - MinIO Console: http://localhost:9011

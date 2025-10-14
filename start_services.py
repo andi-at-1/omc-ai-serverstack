@@ -214,11 +214,15 @@ def main():
     parser = argparse.ArgumentParser(description='Start the local AI and Supabase services.')
     parser.add_argument('--profile', action='append', dest='profiles',
                       help='Profile to enable (can be specified multiple times)')
+    parser.add_argument('--enable-supabase', action='store_true',
+                      help='Enable Supabase service')
 
     args = parser.parse_args()
 
-    clone_supabase_repo()
-    prepare_supabase_env()
+    # Only clone and prepare Supabase if it's enabled
+    if args.enable_supabase:
+        clone_supabase_repo()
+        prepare_supabase_env()
 
     # Generate SearXNG secret key and check docker-compose.yml
     generate_searxng_secret_key()
@@ -226,12 +230,12 @@ def main():
 
     stop_existing_containers()
 
-    # Start Supabase first
-    start_supabase()
-
-    # Give Supabase some time to initialize
-    print("Waiting for Supabase to initialize...")
-    time.sleep(10)
+    # Start Supabase first if enabled
+    if args.enable_supabase:
+        start_supabase()
+        # Give Supabase some time to initialize
+        print("Waiting for Supabase to initialize...")
+        time.sleep(10)
 
     # Then start the local AI services
     start_local_ai(profiles=args.profiles)
