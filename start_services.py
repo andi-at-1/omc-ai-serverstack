@@ -14,10 +14,7 @@ import time
 import argparse
 import platform
 import sys
-#docker mirror ping stuff:
 import subprocess
-import urllib.request
-from urllib.parse import urlparse
 
 def run_command(cmd, cwd=None):
     """Run a shell command and print it."""
@@ -50,41 +47,24 @@ def prepare_supabase_env():
     print("Copying .env in root to .env in supabase/docker...")
     shutil.copyfile(env_example_path, env_path)
 
-def stop_existing_containers(profile=None):
+def stop_existing_containers():
     print("Stopping and removing existing containers for the unified project 'localai'...")
     cmd = ["docker", "compose", "-p", "localai"]
-    if profile and profile != "none":
-        cmd.extend(["--profile", profile])
     cmd.extend(["-f", "docker-compose.yml", "down"])
     run_command(cmd)
 
-def start_supabase(environment=None, docker_mirror_url=""):
+def start_supabase():
     """Start the Supabase services (using its compose file)."""
     print("Starting Supabase services...")
     cmd = ["docker", "compose", "-p", "localai", "-f", "supabase/docker/docker-compose.yml"]   
-    if environment and environment == "public":
-        cmd.extend(["-f", "docker-compose.override.public.supabase.yml"])
     cmd.extend(["up", "-d"])
     run_command(cmd)
 
-
-
-def start_local_ai(profile=None, environment=None, docker_mirror_url=""):
+def start_local_ai():
     """Start the local AI services (using its compose file)."""
     print("Starting local AI services...")
     cmd = ["docker", "compose", "-p", "localai"]
-
-    if profile and profile != "none":
-        cmd.extend(["--profile", profile])
-    cmd.extend(["-f", "docker-compose.yml"])
-
-    if environment and environment == "private":
-        cmd.extend(["-f", "docker-compose.override.private.yml"])
-    if environment and environment == "public":
-        cmd.extend(["-f", "docker-compose.override.public.yml"])
-    if environment and environment == "omc":
-        cmd.extend(["-f", "docker-compose.override.omc.yml"])
-    cmd.extend(["up", "-d"])
+    cmd.extend(["-f", "docker-compose.yml", "up", "-d"])
     run_command(cmd)
 
 def generate_searxng_secret_key():
@@ -230,11 +210,6 @@ def check_and_fix_docker_compose_for_searxng():
 def main():
     parser = argparse.ArgumentParser(description='Start the local AI and Supabase services.')
     
-    parser.add_argument('--profile', choices=['none'], default='none',
-                      help='Profile to use for Docker Compose (default: none)')
-    parser.add_argument('--environment', choices=['private', 'public', 'omc'], default='omc',
-                      help='Environment to use for Docker Compose (default: omc)')
-
     args = parser.parse_args()
 
     clone_supabase_repo()
@@ -244,34 +219,17 @@ def main():
     generate_searxng_secret_key()
     check_and_fix_docker_compose_for_searxng()
 
-    stop_existing_containers(args.profile)
+    stop_existing_containers()
 
     # Start Supabase first
-    start_supabase(args.environment)
+    start_supabase()
 
     # Give Supabase some time to initialize
     print("Waiting for Supabase to initialize...")
     time.sleep(10)
 
     # Then start the local AI services
-    start_local_ai(args.profile, args.environment)
+    start_local_ai()
 
 if __name__ == "__main__":
     main()
-
-
-# def check_docker_mirror(mirror_url):
-#     """Prüft Registry mit Standard-Bibliotheken"""
-#     try:
-#         health_url = f"{mirror_url}/v2/"
-#         with urllib.request.urlopen(health_url, timeout=5) as response:
-#             return response.status == 200
-#     except:
-#         return False
-    
-#         # Mirror hinzufügen
-#     if check_docker_mirror(docker_mirror_url):
-#         cmd.extend(["--registry-mirror", docker_mirror_url])
-#         print(f"Docker Mirror {docker_mirror_url} verfügbar - wird verwendet")
-#     else:
-#         print(f"Docker Mirror {docker_mirror_url} nicht verfügbar - wird übersprungen")
