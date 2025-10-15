@@ -7,11 +7,11 @@
 ENABLE_SUPABASE=true
 ENABLE_N8N=true
 ENABLE_OPENWEBUI=true
-ENABLE_FLOWISE=true
-ENABLE_QDRANT=true
-ENABLE_NEO4J=true
-ENABLE_LANGFUSE=true
-ENABLE_PORTAINER=true
+ENABLE_FLOWISE=false
+ENABLE_QDRANT=false
+ENABLE_NEO4J=false
+ENABLE_LANGFUSE=false
+ENABLE_PORTAINER=false
 
 ##################################
 # Build profile arguments
@@ -31,7 +31,7 @@ PROFILES=""
 
 # Stop all services
 echo "Stopping all services..."
-docker compose -p localai -f docker-compose.yml $PROFILES down
+docker compose -p localai down
 
 # Pull latest versions of all containers
 echo "Pulling latest versions..."
