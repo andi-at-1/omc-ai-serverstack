@@ -16,15 +16,14 @@ volumes:
 x-n8n: &service-n8n
   image: n8nio/n8n:latest
   environment:
-    - DB_TYPE=postgresdb
-    - DB_POSTGRESDB_HOST=db
-    - DB_POSTGRESDB_USER=postgres
-    - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
-    - DB_POSTGRESDB_DATABASE=postgres
+    - GENERIC_TIMEZONE="Europe/Vienna"
+    - TZ="Europe/Vienna"
+    - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+    - N8N_RUNNERS_ENABLED=true
     - N8N_DIAGNOSTICS_ENABLED=false
-    - N8N_PERSONALIZATION_ENABLED=false
     - N8N_ENCRYPTION_KEY
     - N8N_USER_MANAGEMENT_JWT_SECRET
+    - N8N_PERSONALIZATION_ENABLED=false
     - WEBHOOK_URL=${N8N_HOSTNAME:+https://}${N8N_HOSTNAME:-http://localhost:5678}
     - N8N_SECURE_COOKIE=false
 
